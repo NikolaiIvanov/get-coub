@@ -1,0 +1,11 @@
+{
+	"name": "get-coub",
+	"version": "1.0.5",
+	"description": "Tool helps you download coub video",
+	"main": "app.js",
+	"author": "http://tpkn.me",
+	"dependencies": {
+		"request": "latest",
+		"cheerio": "latest"
+	}
+}
