@@ -61,7 +61,9 @@ class GetCoub {
     */
    loadCoub(link){
       request(link, {encoding: 'utf8'}, (error, response, buffer) => {
-         if (error || response.statusCode !== 200) return this.on_error('Error while loading coub page: ' + error);
+         if (error || response.statusCode !== 200){
+         	return this.on_error('Error while loading coub page: ' + error);
+         }
 
          let $ = cheerio.load(buffer, {normalizeWhitespace: false, xmlMode: false, decodeEntities: true});
          let json = JSON.parse($('#coubPageCoubJson').text());
