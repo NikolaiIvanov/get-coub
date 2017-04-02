@@ -1,10 +1,11 @@
 /**
- * GetCoub (v1.0.5.20170208), http://tpkn.me/
+ * GetCoub (v1.0.6.20170403), http://tpkn.me/
  */
 
 const os          = require('os');
 const fs          = require('fs');
 const path        = require('path');
+const mkdirp      = require('mkdirp');
 const exec        = require('child_process').exec;
 const request     = require('request');
 const cheerio     = require('cheerio');
@@ -23,6 +24,8 @@ class GetCoub {
       this.on_progress = typeof on_progress === 'function' ? on_progress : (e => {});
       this.on_complete = typeof on_complete === 'function' ? on_complete : (e => {});
       this.on_error = typeof on_error === 'function' ? on_error : (e => {});
+
+      mkdirp.sync(temp_folder);
 
       this.loadCoub(link);
    }
@@ -255,7 +258,7 @@ class GetCoub {
    }
 }
 
-var gc = new GetCoub('http://coub.com/view/dl5px', (progress) => {
+var gc = new GetCoub('http://coub.com/view/sw2kj', (progress) => {
    console.log(progress);
 },(end) => {
    console.log(end);

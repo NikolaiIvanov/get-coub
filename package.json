@@ -6,6 +6,7 @@
 	"author": "http://tpkn.me",
 	"dependencies": {
 		"request": "latest",
-		"cheerio": "latest"
+		"cheerio": "latest",
+		"mkdirp": "latest"
 	}
 }
