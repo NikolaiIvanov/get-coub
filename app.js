@@ -12,7 +12,7 @@ const cheerio     = require('cheerio');
 
 const ffmpeg      = path.join(process.cwd(), 'bin', 'ffmpeg.exe');
 const ffprobe     = path.join(process.cwd(), 'bin', 'ffprobe.exe');
-const temp_folder = path.join(process.cwd(), '/getcoub_temp/');
+const temp_folder = path.join(process.cwd(), 'temp');
 const save_folder = path.join(os.homedir(), os.platform() === 'win32' ? '/Desktop/' : '/');
 
 
