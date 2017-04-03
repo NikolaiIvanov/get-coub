@@ -258,7 +258,7 @@ class GetCoub {
    }
 }
 
-var gc = new GetCoub('http://coub.com/view/sw2kj', (progress) => {
+var gc = new GetCoub('http://coub.com/view/dl5px', (progress) => {
    console.log(progress);
 },(end) => {
    console.log(end);
