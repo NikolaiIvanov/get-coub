@@ -14,3 +14,7 @@ var gc = new GetCoub('http://coub.com/view/dl5px', (progress) => {
    console.log(error);
 });
 ```
+
+### Change Log
+ - v1.0.7.20170501 - loading video and audio asynchronously 
+ - v1.0.6.20170403

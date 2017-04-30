@@ -1,14 +1,13 @@
 /**
- * GetCoub (v1.0.6.20170403), http://tpkn.me/
+ * GetCoub (v1.0.7.20170501), http://tpkn.me/
  */
 
-const os          = require('os');
-const fs          = require('fs');
-const path        = require('path');
-const mkdirp      = require('mkdirp');
-const exec        = require('child_process').exec;
-const request     = require('request');
 const cheerio     = require('cheerio');
+const exec        = require('child_process').exec;
+const fs          = require('fs-extra');
+const os          = require('os');
+const path        = require('path');
+const request     = require('request');
 
 const ffmpeg      = path.join(process.cwd(), 'bin', 'ffmpeg.exe');
 const ffprobe     = path.join(process.cwd(), 'bin', 'ffprobe.exe');
@@ -25,7 +24,9 @@ class GetCoub {
       this.on_complete = typeof on_complete === 'function' ? on_complete : (e => {});
       this.on_error = typeof on_error === 'function' ? on_error : (e => {});
 
-      mkdirp.sync(temp_folder);
+      fs.ensureDir(temp_folder, (error) => {
+         if(error) return this.on_error(error);
+      });
 
       this.loadCoub(link);
    }
@@ -78,49 +79,67 @@ class GetCoub {
          let audio_path = path.join(temp_folder, path.basename(audio_link));
          let thumb_path = path.join(temp_folder, path.basename(thumb_link));
 
-         this.on_progress('Loading video...');
-
          /**
           * Download video file
           */
-         request(video_link, {encoding: 'binary'}, (error, response, buffer) => {
-            if(error || response.statusCode != 200){
-               return this.on_error('Error while downloading video: ' + this.link);
-            }
+         let video_request = new Promise((resolve, reject) => {
+            this.on_progress('Loading video...');
 
-            fs.writeFileSync(video_path, buffer, 'binary');
-            this.on_progress('Video is loaded: ' + video_link);
+            request(video_link, {encoding: 'binary'}, (error, response, buffer) => {
+               if(error || response.statusCode != 200){
+                  return reject('Error while downloading video: ' + this.link);
+               }
+
+               fs.writeFileSync(video_path, buffer, 'binary');
+               this.on_progress('Video is loaded: ' + video_link);
+
+               resolve(video_link);
+            });
+         });
+
+         /**
+          * Download audio file
+          */
+         let audio_request = new Promise((resolve, reject) => {
             this.on_progress('Loading audio...');
 
-            /**
-             * Download audio file
-             */
             request(audio_link, {encoding: 'binary'}, (error, response, buffer) => {
                if(error || response.statusCode !== 200){
-                  return this.on_error('Error while downloading audio: ' + this.link);
+                  return reject('Error while downloading audio: ' + this.link);
                }
 
                fs.writeFileSync(audio_path, buffer, 'binary');
                this.on_progress('Audio file is loaded: ' + audio_link);
-               this.on_progress('Loading thumbnail...');
 
-               /**
-                * Download thumb file
-                */
-               request(thumb_link, {encoding: 'binary'}, (error, response, buffer) => {
-                  if(error || response.statusCode !== 200){
-                     this.on_error('Error while downloading thumbnail: ' + this.link);
-                  }
-                  
-                  // fs.writeFileSync(thumb_path, buffer, 'binary');
-                  this.on_progress('Thumb image is loaded: ' + thumb_link);
-
-                  /**
-                   * Finally merge files
-                   */
-                  this.mergeFiles(video_path, audio_path, thumb_path);
-               });
+               resolve(audio_link);
             });
+         });
+
+         /**
+          * Download thumb file
+          */
+         let thumb_request = new Promise((resolve, reject) => {
+            this.on_progress('Loading thumbnail...');
+
+            request(thumb_link, {encoding: 'binary'}, (error, response, buffer) => {
+               if(error || response.statusCode !== 200){
+                  this.on_error('Error while downloading thumbnail: ' + this.link);
+               }
+               
+               fs.writeFileSync(thumb_path, buffer, 'binary');
+               this.on_progress('Thumb image is loaded: ' + thumb_link);
+
+               resolve(thumb_link);
+            });
+         });
+
+         /**
+          * Finally merge files
+          */
+         Promise.all([video_request, audio_request, thumb_request]).then(data => {
+            this.mergeFiles(video_path, audio_path, thumb_path);
+         }, error => {
+            return this.on_error(error);
          });
       });
    }
@@ -144,7 +163,6 @@ class GetCoub {
        * we would get super long cmd string and 'ENAMETOOLONG' error as a result
        */
       let concat_list_path = path.join(temp_folder, this.coub_id + '.txt');
-
 
       /**
        * Extracting video info
