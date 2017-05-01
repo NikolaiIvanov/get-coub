@@ -2,11 +2,11 @@
  * GetCoub (v1.0.7.20170501), http://tpkn.me/
  */
 
-const cheerio     = require('cheerio');
-const exec        = require('child_process').exec;
-const fs          = require('fs-extra');
 const os          = require('os');
+const exec        = require('child_process').exec;
 const path        = require('path');
+const cheerio     = require('cheerio');
+const fs          = require('fs-extra');
 const request     = require('request');
 
 const ffmpeg      = path.join(process.cwd(), 'bin', 'ffmpeg.exe');
@@ -124,6 +124,7 @@ class GetCoub {
             request(thumb_link, {encoding: 'binary'}, (error, response, buffer) => {
                if(error || response.statusCode !== 200){
                   this.on_error('Error while downloading thumbnail: ' + this.link);
+                  return resolve(thumb_link);
                }
                
                fs.writeFileSync(thumb_path, buffer, 'binary');
